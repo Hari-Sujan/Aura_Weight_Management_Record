@@ -1,0 +1,105 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --bg-main: #060709;
+    --bg-surface: #0e1017;
+    --bg-card: rgba(14, 16, 23, 0.75);
+    --border-color: rgba(212, 175, 55, 0.15);
+    --border-glow: rgba(212, 175, 55, 0.35);
+    --text-primary: #F8FAFC;
+    --text-secondary: #94A3B8;
+    --accent-gold: #F3E5AB;
+    --accent-gold-deep: #D4AF37;
+    --accent-amber: #E09F3E;
+    --accent-cyan: #38BDF8;
+    --accent-violet: #A78BFA;
+    --input-bg: #090B10;
+  }
+
+  body {
+    background-color: var(--bg-main);
+    color: var(--text-primary);
+    min-height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+}
+
+/* Hide spin buttons / pull-down arrows for all number inputs globally */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+/* Luxury Glowing Card & Border Effects */
+.luxury-card {
+  background: var(--bg-card);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid var(--border-color);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.luxury-card:hover {
+  border-color: var(--border-glow);
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7), 0 0 25px rgba(212, 175, 55, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  transform: translateY(-2px);
+}
+
+.luxury-input {
+  background-color: var(--input-bg);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  transition: all 0.3s ease;
+}
+
+.luxury-input:focus {
+  border-color: var(--accent-gold-deep);
+  box-shadow: 0 0 20px rgba(212, 175, 55, 0.2);
+  outline: none;
+}
+
+.luxury-gradient-text {
+  background: linear-gradient(135deg, #FFF 0%, #D4AF37 50%, #E09F3E 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.luxury-gradient-btn {
+  background: linear-gradient(135deg, #D4AF37 0%, #E09F3E 50%, #C5A059 100%);
+  box-shadow: 0 10px 30px rgba(212, 175, 55, 0.3);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.luxury-gradient-btn:hover {
+  opacity: 0.95;
+  box-shadow: 0 15px 40px rgba(212, 175, 55, 0.45);
+  transform: translateY(-1px);
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-main);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(212, 175, 55, 0.2);
+  border-radius: 12px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-gold-deep);
+}
