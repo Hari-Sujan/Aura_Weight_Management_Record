@@ -21,7 +21,6 @@ export default async function handler(req: any, res: any) {
     }
 
     if (req.method === 'POST') {
-      // Expects entire database state update or specific action
       const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
       const { collection } = await getMasterDocument();
 

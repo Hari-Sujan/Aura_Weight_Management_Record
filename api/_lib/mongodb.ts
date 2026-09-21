@@ -1,7 +1,7 @@
 import { MongoClient } from 'mongodb';
 
 const MONGODB_URI = process.env.MONGODB_URI || "mongodb+srv://Vercel-Admin-auracentre:VO5jtaPh4LMfTFYO@auracentre.k37o2xv.mongodb.net/?retryWrites=true&w=majority";
-const DB_NAME = "auracentre";
+const DB_NAME = "adminuser";
 const COLLECTION_NAME = "adminuserdata";
 
 let cachedClient: MongoClient | null = null;
@@ -23,7 +23,7 @@ export async function getMasterDocument() {
   
   let doc = await collection.findOne({});
   if (!doc) {
-    // Initialize if empty
+    // Initialize with the provided MongoDB document structure
     const initial = {
       users: [
         {
@@ -33,6 +33,14 @@ export async function getMasterDocument() {
           password: 'user123',
           status: 'Active',
           createdAt: '2025-01-15'
+        },
+        {
+          id: 'u2',
+          name: 'Marcus Vance',
+          username: 'marcus_v',
+          password: 'user123',
+          status: 'Active',
+          createdAt: '2025-02-01'
         }
       ],
       admins: [
@@ -63,8 +71,27 @@ export async function getMasterDocument() {
           visceralFat: 3,
           bmr: 1420,
           wellnessScore: 94,
-          notes: 'Optimal metabolic balance achieved. Excellent conditioning.',
+          notes: 'Optimal metabolic balance achieved. Synchronized with MongoDB Atlas auracentre.adminuser.adminuserdata.',
           createdAt: '2025-02-20T10:30:00Z'
+        },
+        {
+          id: 'r2',
+          fullName: 'Hari Sujan',
+          dateOfBirth: '1984-09-10',
+          age: 41,
+          date: '2025-02-21',
+          place: 'Downtown Branch',
+          gender: 'Male',
+          height: 182,
+          weight: 84,
+          bmi: 25.3,
+          bodyFatPercentage: 17.8,
+      metabolicAge: 38,
+          visceralFat: 7,
+          bmr: 1850,
+          wellnessScore: 89,
+          notes: 'Visceral fat metrics logged directly to cloud cluster auracentre.',
+          createdAt: '2025-02-21T14:15:00Z'
         }
       ]
     };

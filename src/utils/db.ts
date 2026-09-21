@@ -1,31 +1,25 @@
 import { AuraDatabase } from '../types';
 
 export const getDatabase = async (): Promise<AuraDatabase> => {
-  try {
-    const res = await fetch('/api/database');
-    if (!res.ok) throw new Error('Failed to fetch database from server');
-    const data = await res.json();
-    return data;
-  } catch (err) {
-    console.error('Failed to fetch from MongoDB API, falling back to empty state', err);
-    return { users: [], admins: [], records: [] };
+  const res = await fetch('/api/database');
+  if (!res.ok) {
+    throw new Error('Failed to fetch database from MongoDB Atlas API');
   }
+  const data = await res.json();
+  return data;
 };
 
 export const saveDatabase = async (db: AuraDatabase): Promise<AuraDatabase> => {
-  try {
-    const res = await fetch('/api/database', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(db),
-    });
-    if (!res.ok) throw new Error('Failed to save database to server');
-    const data = await res.json();
-    return data;
-  } catch (err) {
-    console.error('Failed to save to MongoDB API', err);
-    throw err;
+  const res = await fetch('/api/database', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(db),
+  });
+  if (!res.ok) {
+    throw new Error('Failed to save database to MongoDB Atlas');
   }
+  const data = await res.json();
+  return data;
 };
 
 export const exportDatabaseJSON = async (): Promise<void> => {
