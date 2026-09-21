@@ -1,8 +1,10 @@
+export type Role = 'admin' | 'user';
+
 export interface User {
   id: string;
   name: string;
   username: string;
-  password?: string;
+  password: string;
   status: 'Active' | 'Inactive';
   createdAt: string;
 }
@@ -11,7 +13,7 @@ export interface Admin {
   id: string;
   name: string;
   username: string;
-  password?: string;
+  password: string;
   accessLevel: string;
   status: 'Active' | 'Inactive';
   createdAt: string;
@@ -28,12 +30,12 @@ export interface HealthRecord {
   height: number; // in cm
   weight: number; // in kg
   bmi: number;
-  bodyFatPercentage: number;
-  metabolicAge: number;
-  visceralFat: number;
-  bmr: number;
+  bodyFatPercentage?: number;
+  metabolicAge?: number;
+  visceralFat?: number;
+  bmr?: number;
   wellnessScore: number;
-  notes?: string;
+  notes: string;
   createdAt: string;
 }
 
