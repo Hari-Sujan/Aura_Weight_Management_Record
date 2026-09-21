@@ -10,7 +10,7 @@ export default async function handler(req: any, res: any) {
   }
 
   try {
-    const { doc } = await getMasterDocument();
+    const { doc, collection } = await getMasterDocument();
 
     if (req.method === 'GET') {
       return res.status(200).json({
@@ -22,7 +22,6 @@ export default async function handler(req: any, res: any) {
 
     if (req.method === 'POST') {
       const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
-      const { collection } = await getMasterDocument();
 
       await collection.updateOne(
         { _id: doc._id },
@@ -32,21 +31,22 @@ export default async function handler(req: any, res: any) {
             admins: body.admins || doc.admins,
             records: body.records || doc.records
           } 
-        }
+        },
+        { upsert: true }
       );
 
       const updatedDoc = await collection.findOne({ _id: doc._id });
       return res.status(200).json({
         success: true,
-        users: updatedDoc.users,
-        admins: updatedDoc.admins,
-        records: updatedDoc.records
+        users: updatedDoc?.users || body.users,
+        admins: updatedDoc?.admins || body.admins,
+        records: updatedDoc?.records || body.records
       });
     }
 
     return res.status(405).json({ error: 'Method not allowed' });
   } catch (error: any) {
-    console.error('API Error:', error);
+    console.error('API Error in database handler:', error);
     return res.status(500).json({ error: error.message || 'Internal server error' });
   }
 }
