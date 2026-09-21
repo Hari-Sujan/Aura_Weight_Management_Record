@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getDatabase, saveDatabase, exportDatabaseJSON, importDatabaseJSON } from './utils/db';
+import { MONGODB_CONFIG } from './utils/config';
 import { AuraDatabase, Role, User, Admin, HealthRecord } from './types';
 import { Login } from './components/Login';
 import { Layout } from './components/Layout';
@@ -21,12 +22,18 @@ export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [role, setRole] = useState<Role>('user');
   const [userDetails, setUserDetails] = useState<{ name: string; username: string } | null>(null);
-  const [activeTab, setActiveTab] = useState<number>(4); // Default to Search & Manage
+  const [activeTab, setActiveTab] = useState<number>(4);
   const [toasts, setToasts] = useState<Toast[]>([]);
 
   useEffect(() => {
-    const loadedDb = getDatabase();
-    setDb(loadedDb);
+    getDatabase()
+      .then((loadedDb) => {
+        setDb(loadedDb);
+        addToast('Connected to MongoDB Atlas Collections ("users", "admins", "records")', 'success');
+      })
+      .catch((err) => {
+        addToast('Failed to connect to MongoDB Atlas', 'error');
+      });
   }, []);
 
   const addToast = (text: string, type: 'success' | 'error') => {
@@ -47,15 +54,15 @@ export default function App() {
   const handleLogout = () => {
     setIsAuthenticated(false);
     setUserDetails(null);
-    addToast('Signed out successfully', 'success');
+    addToast('Signed out successfully from MongoDB session', 'success');
   };
 
-  const syncDb = (updatedDb: AuraDatabase) => {
+  const syncDb = async (updatedDb: AuraDatabase) => {
     setDb(updatedDb);
-    saveDatabase(updatedDb);
+    await saveDatabase(updatedDb);
   };
 
-  const handleAddUser = (newUser: Omit<User, 'id' | 'createdAt'>) => {
+  const handleAddUser = async (newUser: Omit<User, 'id' | 'createdAt'>) => {
     if (!db) return;
     const user: User = {
       ...newUser,
@@ -64,32 +71,32 @@ export default function App() {
       createdAt: new Date().toISOString().split('T')[0]
     };
     const updated = { ...db, users: [user, ...db.users] };
-    syncDb(updated);
-    addToast(`Client "${user.name}" created successfully`, 'success');
+    await syncDb(updated);
+    addToast(`Client "${user.name}" saved to MongoDB 'users' collection`, 'success');
   };
 
-  const handleEditUser = (updatedUser: User) => {
+  const handleEditUser = async (updatedUser: User) => {
     if (!db) return;
     const updated = {
       ...db,
       users: db.users.map((u) => (u.id === updatedUser.id ? updatedUser : u))
     };
-    syncDb(updated);
-    addToast(`Client "${updatedUser.name}" updated successfully`, 'success');
+    await syncDb(updated);
+    addToast(`Client "${updatedUser.name}" updated in MongoDB`, 'success');
   };
 
-  const handleDeleteUser = (id: string) => {
+  const handleDeleteUser = async (id: string) => {
     if (!db) return;
     const userToDelete = db.users.find(u => u.id === id);
     const updated = {
       ...db,
       users: db.users.filter((u) => u.id !== id)
     };
-    syncDb(updated);
-    addToast(`Client "${userToDelete?.name || 'Account'}" deleted`, 'error');
+    await syncDb(updated);
+    addToast(`Client "${userToDelete?.name || 'Account'}" removed from MongoDB`, 'error');
   };
 
-  const handleAddAdmin = (newAdmin: Omit<Admin, 'id' | 'createdAt'>) => {
+  const handleAddAdmin = async (newAdmin: Omit<Admin, 'id' | 'createdAt'>) => {
     if (!db) return;
     const admin: Admin = {
       ...newAdmin,
@@ -99,32 +106,32 @@ export default function App() {
       createdAt: new Date().toISOString().split('T')[0]
     };
     const updated = { ...db, admins: [admin, ...db.admins] };
-    syncDb(updated);
-    addToast(`Admin "${admin.name}" created successfully`, 'success');
+    await syncDb(updated);
+    addToast(`Admin "${admin.name}" added to MongoDB 'admins' collection`, 'success');
   };
 
-  const handleEditAdmin = (updatedAdmin: Admin) => {
+  const handleEditAdmin = async (updatedAdmin: Admin) => {
     if (!db) return;
     const updated = {
       ...db,
       admins: db.admins.map((a) => (a.id === updatedAdmin.id ? updatedAdmin : a))
     };
-    syncDb(updated);
-    addToast(`Admin "${updatedAdmin.name}" updated successfully`, 'success');
+    await syncDb(updated);
+    addToast(`Admin "${updatedAdmin.name}" updated in MongoDB`, 'success');
   };
 
-  const handleDeleteAdmin = (id: string) => {
+  const handleDeleteAdmin = async (id: string) => {
     if (!db) return;
     const adminToDelete = db.admins.find(a => a.id === id);
     const updated = {
       ...db,
       admins: db.admins.filter((a) => a.id !== id)
     };
-    syncDb(updated);
-    addToast(`Admin "${adminToDelete?.name || 'Account'}" deleted`, 'error');
+    await syncDb(updated);
+    addToast(`Admin "${adminToDelete?.name || 'Account'}" removed from MongoDB`, 'error');
   };
 
-  const handleSaveRecord = (newRecord: Omit<HealthRecord, 'id' | 'createdAt'>) => {
+  const handleSaveRecord = async (newRecord: Omit<HealthRecord, 'id' | 'createdAt'>) => {
     if (!db) return;
     const record: HealthRecord = {
       ...newRecord,
@@ -132,49 +139,51 @@ export default function App() {
       createdAt: new Date().toISOString()
     };
     const updated = { ...db, records: [record, ...db.records] };
-    syncDb(updated);
+    await syncDb(updated);
+    addToast(`Health record saved to MongoDB 'records' collection`, 'success');
   };
 
-  const handleEditRecord = (updatedRecord: HealthRecord) => {
+  const handleEditRecord = async (updatedRecord: HealthRecord) => {
     if (!db) return;
     const updated = {
       ...db,
       records: db.records.map((r) => (r.id === updatedRecord.id ? updatedRecord : r))
     };
-    syncDb(updated);
-    addToast(`Health record for "${updatedRecord.fullName}" updated`, 'success');
+    await syncDb(updated);
+    addToast(`Health record for "${updatedRecord.fullName}" updated in MongoDB`, 'success');
   };
 
-  const handleDeleteRecord = (id: string) => {
+  const handleDeleteRecord = async (id: string) => {
     if (!db) return;
     const recordToDelete = db.records.find(r => r.id === id);
     const updated = {
       ...db,
       records: db.records.filter((r) => r.id !== id)
     };
-    syncDb(updated);
-    addToast(`Health record for "${recordToDelete?.fullName || 'Client'}" deleted`, 'error');
+    await syncDb(updated);
+    addToast(`Health record for "${recordToDelete?.fullName || 'Client'}" deleted from MongoDB`, 'error');
   };
 
-  const handleExport = () => {
-    exportDatabaseJSON();
-    addToast('Database exported successfully', 'success');
+  const handleExport = async () => {
+    await exportDatabaseJSON();
+    addToast('MongoDB Atlas collection backup exported successfully', 'success');
   };
 
   const handleImport = async (file: File) => {
     try {
       const importedDb = await importDatabaseJSON(file);
       setDb(importedDb);
-      addToast('Database imported successfully', 'success');
+      addToast('MongoDB Atlas collections successfully restored from backup', 'success');
     } catch (err: any) {
-      addToast(err.message || 'Failed to import database', 'error');
+      addToast(err.message || 'Failed to import backup', 'error');
     }
   };
 
   if (!db) {
     return (
-      <div className="min-h-screen bg-[#0B0C0E] flex items-center justify-center">
+      <div className="min-h-screen bg-[#0B0C0E] flex flex-col items-center justify-center gap-4 text-center">
         <div className="w-12 h-12 border-4 border-[#E5C568] border-t-transparent rounded-full animate-spin" />
+        <p className="text-sm text-neutral-400 font-medium">Connecting to MongoDB Atlas Cluster ({MONGODB_CONFIG.cluster})...</p>
       </div>
     );
   }
