@@ -44,8 +44,11 @@ export const Layout: React.FC<LayoutProps> = ({
           <div>
             <div className="flex items-center gap-2">
               <span className="font-bold tracking-tight text-white text-lg">AURA</span>
+              <span className="text-[10px] font-semibold bg-[#9E7FFF]/20 text-[#9E7FFF] px-2 py-0.5 rounded-full border border-[#9E7FFF]/30 uppercase tracking-widest">
+                {role === 'admin' ? 'Admin Portal' : 'Client Suite'}
+              </span>
             </div>
-            <p className="text-xs text-white font-medium">{userDetails?.name}</p>
+            <p className="text-xs text-[#A3A3A3]">Welcome, <span className="text-white font-medium">{userDetails?.name}</span></p>
           </div>
         </div>
 
