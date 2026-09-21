@@ -2,7 +2,7 @@ import { AuraDatabase } from '../types';
 
 export const getDatabaseFromAPI = async (): Promise<AuraDatabase> => {
   try {
-    const res = await fetch('http://localhost:5000/api/data');
+    const res = await fetch('/api/data');
     if (!res.ok) throw new Error('Failed to fetch from server');
     const data = await res.json();
     return {
@@ -18,7 +18,7 @@ export const getDatabaseFromAPI = async (): Promise<AuraDatabase> => {
 
 export const saveDatabaseToAPI = async (db: AuraDatabase): Promise<void> => {
   try {
-    const res = await fetch('http://localhost:5000/api/data', {
+    const res = await fetch('/api/data', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(db)
