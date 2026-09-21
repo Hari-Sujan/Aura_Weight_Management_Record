@@ -35,6 +35,8 @@ export const SearchRecords: React.FC<SearchRecordsProps> = ({
   const [editNotes, setEditNotes] = useState('');
 
   // Filter records based on role
+  // If role is 'user', match records where fullName or username matches the logged in client name/username (case-insensitive & fuzzy)
+  // If no exact match or if user wants to see all accessible records, we fall back or show all records matching the user's account name
   const accessibleRecords = role === 'admin' 
     ? records 
     : records.filter(r => {
@@ -50,6 +52,7 @@ export const SearchRecords: React.FC<SearchRecordsProps> = ({
         );
       });
 
+  // If client has no specific records matched by name, show all records or notify. But to ensure they see their details, let's filter by search as well.
   const recordsToDisplay = role === 'admin' ? records : (accessibleRecords.length > 0 ? accessibleRecords : records);
 
   const filteredRecords = recordsToDisplay.filter(
@@ -106,9 +109,16 @@ export const SearchRecords: React.FC<SearchRecordsProps> = ({
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
+          <div className="flex items-center gap-2 mb-1">
+            <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+              role === 'admin' ? 'bg-[#9E7FFF]/20 text-[#9E7FFF] border border-[#9E7FFF]/30' : 'bg-[#38bdf8]/20 text-[#38bdf8] border border-[#38bdf8]/30'
+            }`}>
+              {role === 'admin' ? 'Admin Portal' : 'Client Portal'}
+            </span>
+          </div>
           <h2 className="text-xl font-bold text-white flex items-center gap-2">
             <FileText className="w-6 h-6 text-[#9E7FFF]" />
-            {role === 'admin' ? 'Health Records & Biometric Database' : `${userDetails?.name || 'Client'} — Dashboard`}
+            {role === 'admin' ? 'Health Records & Biometric Database' : `Client Dashboard — Welcome, ${userDetails?.name || 'Client'}`}
           </h2>
           <p className="text-xs text-[#A3A3A3]">
             {role === 'admin' 
@@ -161,6 +171,7 @@ export const SearchRecords: React.FC<SearchRecordsProps> = ({
                     {record.date}
                   </span>
                   
+                  {/* ADMIN ONLY: Edit and Delete buttons. Client never sees edit/delete buttons */}
                   {role === 'admin' && (
                     <div className="flex items-center gap-1">
                       <button
@@ -236,7 +247,7 @@ export const SearchRecords: React.FC<SearchRecordsProps> = ({
         )}
       </div>
 
-      {/* Detailed Clinical Modal / Report */}
+      {/* Detailed Clinical Modal / Report (Accessible to both Admin and Client) */}
       {selectedRecord && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md overflow-y-auto">
           <div className="bg-[#1C1D21] border border-[#2F323A] rounded-3xl w-full max-w-2xl p-8 shadow-2xl relative my-8">
@@ -247,7 +258,7 @@ export const SearchRecords: React.FC<SearchRecordsProps> = ({
                 </div>
                 <div>
                   <h3 className="text-lg font-bold text-white">AURA CLINICAL REPORT</h3>
-                  <p className="text-xs text-[#A3A3A3]">Precision Body Composition Analysis</p>
+                  <p className="text-xs text-[#A3A3A3]">Precision Body Composition Analysis ({role === 'user' ? 'Client View' : 'Admin View'})</p>
                 </div>
               </div>
               <button
