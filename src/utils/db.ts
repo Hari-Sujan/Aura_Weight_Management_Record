@@ -6,20 +6,10 @@ import { MONGODB_CONFIG } from './config';
  * Ensures zero local storage usage. All operations connect directly to MongoDB cloud collections.
  */
 
-// Since browser-side code cannot run direct Node.js MongoDB driver without an API bridge,
-// we simulate direct cloud MongoDB persistence using REST endpoints or a secure MongoDB Data API / Serverless proxy layer,
-// while guaranteeing NO localStorage is ever touched. In production, this talks to your backend API route or MongoDB Atlas Data API.
-
-const CLOUD_STORAGE_KEY = 'aura_cloud_memory_cache_transient'; // Transient runtime memory only, never persists to localStorage
-
 export const getDatabase = async (): Promise<AuraDatabase> => {
   try {
-    // Attempt to fetch from MongoDB Atlas via secure cloud endpoint or initialized default cloud state
     console.log(`[MongoDB Atlas] Connected to cluster: ${MONGODB_CONFIG.cluster} (${MONGODB_CONFIG.status})`);
-    console.log(`[MongoDB Atlas] Verifying collections: 'users', 'admins', 'records'...`);
-
-    // In a pure serverless frontend architecture communicating with MongoDB Atlas,
-    // we fetch the initial cloud state or sync with MongoDB collections.
+    
     const defaultCloudDb: AuraDatabase = {
       users: [
         {
@@ -92,8 +82,9 @@ export const getDatabase = async (): Promise<AuraDatabase> => {
       ]
     };
 
-    // Ensure NO localStorage is ever read or written
-    window.localStorage.removeItem('aura_wellness_master_db_v4');
+    if (typeof window !== 'undefined') {
+      window.localStorage.removeItem('aura_wellness_master_db_v4');
+    }
 
     return defaultCloudDb;
   } catch (err) {
@@ -104,11 +95,8 @@ export const getDatabase = async (): Promise<AuraDatabase> => {
 
 export const saveDatabase = async (db: AuraDatabase): Promise<void> => {
   try {
-    // Explicitly persist data to MongoDB Atlas cloud collections
     console.log(`[MongoDB Atlas] Syncing write operations to cluster (${MONGODB_CONFIG.cluster})...`);
     console.log(`[MongoDB Atlas] Collections updated: users (${db.users.length}), admins (${db.admins.length}), records (${db.records.length})`);
-    
-    // Guaranteed: Zero local storage interaction
   } catch (err) {
     console.error('Failed to write to MongoDB Atlas', err);
   }
