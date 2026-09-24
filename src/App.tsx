@@ -9,7 +9,6 @@ import { AdminManagement } from './components/AdminManagement';
 import { RecordEntry } from './components/RecordEntry';
 import { SearchRecords } from './components/SearchRecords';
 import { ThreeDBackground } from './components/ThreeDBackground';
-import { Cloud, CheckCircle2, RefreshCw } from 'lucide-react';
 
 interface Toast {
   id: string;
@@ -24,23 +23,12 @@ export default function App() {
   const [userDetails, setUserDetails] = useState<{ name: string; username: string } | null>(null);
   const [activeTab, setActiveTab] = useState<number>(4); // Default to Search & Manage
   const [toasts, setToasts] = useState<Toast[]>([]);
-  const [isSyncing, setIsSyncing] = useState(false);
 
   useEffect(() => {
-    loadData();
-  }, []);
-
-  const loadData = async () => {
-    setIsSyncing(true);
-    try {
-      const loadedDb = await getDatabase();
+    getDatabase().then((loadedDb) => {
       setDb(loadedDb);
-    } catch (err) {
-      addToast('Failed to connect to MongoDB Atlas', 'error');
-    } finally {
-      setIsSyncing(false);
-    }
-  };
+    });
+  }, []);
 
   const addToast = (text: string, type: 'success' | 'error') => {
     const id = Math.random().toString(36).substring(2, 9);
@@ -55,7 +43,6 @@ export default function App() {
     setUserDetails(details);
     setIsAuthenticated(true);
     setActiveTab(userRole === 'admin' ? 3 : 4);
-    addToast(`Welcome back, ${details.name}! Connected to MongoDB`, 'success');
   };
 
   const handleLogout = () => {
@@ -65,15 +52,8 @@ export default function App() {
   };
 
   const syncDb = async (updatedDb: AuraDatabase) => {
-    setIsSyncing(true);
-    try {
-      const saved = await saveDatabase(updatedDb);
-      setDb(saved);
-    } catch (err) {
-      addToast('Error syncing with MongoDB Atlas', 'error');
-    } finally {
-      setIsSyncing(false);
-    }
+    setDb(updatedDb);
+    await saveDatabase(updatedDb);
   };
 
   const handleAddUser = async (newUser: Omit<User, 'id' | 'createdAt'>) => {
@@ -86,7 +66,7 @@ export default function App() {
     };
     const updated = { ...db, users: [user, ...db.users] };
     await syncDb(updated);
-    addToast(`Client "${user.name}" created in MongoDB`, 'success');
+    addToast(`Client "${user.name}" created successfully in MongoDB`, 'success');
   };
 
   const handleEditUser = async (updatedUser: User) => {
@@ -96,7 +76,7 @@ export default function App() {
       users: db.users.map((u) => (u.id === updatedUser.id ? updatedUser : u))
     };
     await syncDb(updated);
-    addToast(`Client "${updatedUser.name}" updated in MongoDB`, 'success');
+    addToast(`Client "${updatedUser.name}" updated successfully`, 'success');
   };
 
   const handleDeleteUser = async (id: string) => {
@@ -107,7 +87,7 @@ export default function App() {
       users: db.users.filter((u) => u.id !== id)
     };
     await syncDb(updated);
-    addToast(`Client "${userToDelete?.name || 'Account'}" deleted from MongoDB`, 'error');
+    addToast(`Client "${userToDelete?.name || 'Account'}" deleted`, 'error');
   };
 
   const handleAddAdmin = async (newAdmin: Omit<Admin, 'id' | 'createdAt'>) => {
@@ -121,7 +101,7 @@ export default function App() {
     };
     const updated = { ...db, admins: [admin, ...db.admins] };
     await syncDb(updated);
-    addToast(`Admin "${admin.name}" created in MongoDB`, 'success');
+    addToast(`Admin "${admin.name}" created successfully`, 'success');
   };
 
   const handleEditAdmin = async (updatedAdmin: Admin) => {
@@ -131,7 +111,7 @@ export default function App() {
       admins: db.admins.map((a) => (a.id === updatedAdmin.id ? updatedAdmin : a))
     };
     await syncDb(updated);
-    addToast(`Admin "${updatedAdmin.name}" updated in MongoDB`, 'success');
+    addToast(`Admin "${updatedAdmin.name}" updated successfully`, 'success');
   };
 
   const handleDeleteAdmin = async (id: string) => {
@@ -142,7 +122,7 @@ export default function App() {
       admins: db.admins.filter((a) => a.id !== id)
     };
     await syncDb(updated);
-    addToast(`Admin "${adminToDelete?.name || 'Account'}" deleted from MongoDB`, 'error');
+    addToast(`Admin "${adminToDelete?.name || 'Account'}" deleted`, 'error');
   };
 
   const handleSaveRecord = async (newRecord: Omit<HealthRecord, 'id' | 'createdAt'>) => {
@@ -163,7 +143,7 @@ export default function App() {
       records: db.records.map((r) => (r.id === updatedRecord.id ? updatedRecord : r))
     };
     await syncDb(updated);
-    addToast(`Health record for "${updatedRecord.fullName}" updated in MongoDB`, 'success');
+    addToast(`Health record for "${updatedRecord.fullName}" updated`, 'success');
   };
 
   const handleDeleteRecord = async (id: string) => {
@@ -174,7 +154,7 @@ export default function App() {
       records: db.records.filter((r) => r.id !== id)
     };
     await syncDb(updated);
-    addToast(`Health record for "${recordToDelete?.fullName || 'Client'}" deleted from MongoDB`, 'error');
+    addToast(`Health record for "${recordToDelete?.fullName || 'Client'}" deleted`, 'error');
   };
 
   const handleExport = async () => {
@@ -186,7 +166,7 @@ export default function App() {
     try {
       const importedDb = await importDatabaseJSON(file);
       setDb(importedDb);
-      addToast('Database imported & synchronized with MongoDB', 'success');
+      addToast('Database imported successfully into MongoDB', 'success');
     } catch (err: any) {
       addToast(err.message || 'Failed to import database', 'error');
     }
@@ -194,11 +174,8 @@ export default function App() {
 
   if (!db) {
     return (
-      <div className="min-h-screen bg-[#0B0C0E] flex flex-col items-center justify-center gap-4">
-        <div className="w-12 h-12 border-4 border-[#9E7FFF] border-t-transparent rounded-full animate-spin" />
-        <p className="text-xs font-bold text-[#A3A3A3] uppercase tracking-widest flex items-center gap-2">
-          <Cloud className="w-4 h-4 text-[#38bdf8]" /> Connecting to MongoDB Atlas...
-        </p>
+      <div className="min-h-screen bg-[#0B0C0E] flex items-center justify-center">
+        <div className="w-12 h-12 border-4 border-[#E5C568] border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -206,21 +183,6 @@ export default function App() {
   return (
     <>
       <ThreeDBackground />
-
-      {/* MongoDB Status Pill */}
-      <div className="fixed bottom-6 left-6 z-40 bg-[#1C1D21]/90 border border-[#2F323A] backdrop-blur-md px-4 py-2.5 rounded-2xl shadow-xl flex items-center gap-3">
-        <span className="relative flex h-2.5 w-2.5">
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#10b981] opacity-75"></span>
-          <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#10b981]"></span>
-        </span>
-        <div className="text-[11px] font-semibold text-white flex items-center gap-1.5">
-          <Cloud className="w-3.5 h-3.5 text-[#38bdf8]" />
-          <span>MongoDB Atlas: <strong className="text-[#10b981]">Connected</strong></span>
-        </div>
-        {isSyncing && (
-          <RefreshCw className="w-3 h-3 text-[#9E7FFF] animate-spin ml-2" />
-        )}
-      </div>
 
       <div className="fixed top-6 right-6 z-50 space-y-3 pointer-events-none">
         <AnimatePresence>
@@ -232,11 +194,11 @@ export default function App() {
               exit={{ opacity: 0, scale: 0.9, y: -10 }}
               className={`px-5 py-3.5 rounded-2xl shadow-2xl border text-xs font-bold flex items-center gap-2.5 pointer-events-auto ${
                 toast.type === 'success'
-                  ? 'bg-[#10b981]/10 border-[#10b981]/30 text-[#10b981] backdrop-blur-md'
+                  ? 'bg-[#849E90]/10 border-[#849E90]/30 text-[#849E90] backdrop-blur-md'
                   : 'bg-red-500/10 border-red-500/30 text-red-400 backdrop-blur-md'
               }`}
             >
-              <span className={`w-2 h-2 rounded-full ${toast.type === 'success' ? 'bg-[#10b981]' : 'bg-red-400'}`} />
+              <span className={`w-2 h-2 rounded-full ${toast.type === 'success' ? 'bg-[#849E90]' : 'bg-red-400'}`} />
               <span>{toast.text}</span>
             </motion.div>
           ))}
